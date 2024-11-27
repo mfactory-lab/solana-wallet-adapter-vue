@@ -1,5 +1,6 @@
 <script>
 import { AnchorProvider, Program } from '@coral-xyz/anchor'
+import { useAnchorWallet, WalletMultiButton } from '@solana/wallet-adapter-vue'
 import {
   clusterApiUrl,
   Connection,
@@ -9,7 +10,6 @@ import {
 } from '@solana/web3.js'
 import { useLocalStorage } from '@vueuse/core'
 import { computed, ref, watchEffect } from 'vue'
-import { useAnchorWallet, WalletMultiButton } from '../src'
 import idl from './idl.json'
 
 const programID = new PublicKey(idl.metadata.address)

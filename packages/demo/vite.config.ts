@@ -1,14 +1,18 @@
 import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-  root: resolve(import.meta.dirname, 'example'),
+  plugins: [
+    vue(),
+    // https://github.com/davidmyersdev/vite-plugin-node-polyfills
+    nodePolyfills(),
+  ],
   resolve: {
     alias: {
-      '~/': `${resolve(import.meta.dirname, 'src')}/`,
+      '~/': `${resolve(__dirname, 'src')}/`,
     },
   },
   define: {
