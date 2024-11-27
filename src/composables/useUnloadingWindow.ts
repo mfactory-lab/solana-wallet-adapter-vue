@@ -1,27 +1,26 @@
-import { ref, Ref, watchEffect } from "vue";
+import type { Ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 /**
  * Provides a boolean that tells us if the window is unloading.
  * This is only relevant in the browser.
  */
-export function useUnloadingWindow(
-  isUsingMwaAdapterOnMobile: Ref<boolean>
-): Ref<boolean> {
-  const unloadingWindow = ref<boolean>(false);
+export function useUnloadingWindow(isUsingMwaOnMobile: Ref<boolean>): Ref<boolean> {
+  const unloadingWindow = ref(false)
 
-  if (typeof window === "undefined") {
-    return unloadingWindow;
+  if (typeof globalThis === 'undefined') {
+    return unloadingWindow
   }
 
+  const handleBeforeUnload = () => (unloadingWindow.value = true)
+
   watchEffect((onInvalidate) => {
-    if (isUsingMwaAdapterOnMobile.value) {
-      return;
+    if (isUsingMwaOnMobile.value) {
+      return
     }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    onInvalidate(() => window.removeEventListener('beforeunload', handleBeforeUnload))
+  })
 
-    const handler = () => (unloadingWindow.value = true);
-    window.addEventListener("beforeunload", handler);
-    onInvalidate(() => window.removeEventListener("beforeunload", handler));
-  });
-
-  return unloadingWindow;
+  return unloadingWindow
 }

@@ -1,39 +1,33 @@
 <script lang="ts">
-import type { Wallet } from "@/types";
-import { useWallet } from "@/useWallet";
-import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
-import { onClickOutside, onKeyStroke, useScrollLock } from "@vueuse/core";
-import {
-  computed,
-  defineComponent,
-  nextTick,
-  Ref,
-  ref,
-  toRefs,
-  watch,
-} from "vue";
-import WalletIcon from "./WalletIcon.vue";
+import type { WalletName } from '@solana/wallet-adapter-base'
+import type { Ref } from 'vue'
+import { WalletReadyState } from '@solana/wallet-adapter-base'
+import { onClickOutside, onKeyStroke, useScrollLock } from '@vueuse/core'
+import { computed, defineComponent, nextTick, ref, toRefs, useTemplateRef, watch } from 'vue'
+import type { Wallet } from '~/types'
+import { useWallet } from '~/useWallet'
+import WalletIcon from './WalletIcon.vue'
 
 type WalletModalProviderRawBindings = WalletModelProviderScope & {
-  scope: WalletModelProviderScope;
-};
+  scope: WalletModelProviderScope
+}
 
-type WalletModelProviderScope = {
-  dark: Ref<boolean>;
-  logo: Ref<string | undefined>;
-  hasLogo: Ref<boolean>;
-  featured: Ref<number>;
-  container: Ref<string>;
-  modalPanel: Ref<HTMLElement | null>;
-  modalOpened: Ref<boolean>;
-  openModal: () => void;
-  closeModal: () => void;
-  expandedWallets: Ref<boolean>;
-  walletsToDisplay: Ref<Wallet[]>;
-  featuredWallets: Ref<Wallet[]>;
-  hiddenWallets: Ref<Wallet[]>;
-  selectWallet: (name: WalletName) => void;
-};
+interface WalletModelProviderScope {
+  dark: Ref<boolean>
+  logo: Ref<string | undefined>
+  hasLogo: Ref<boolean>
+  featured: Ref<number>
+  container: Ref<string>
+  modalPanel: Ref<HTMLElement | null>
+  modalOpened: Ref<boolean>
+  openModal: () => void
+  closeModal: () => void
+  expandedWallets: Ref<boolean>
+  walletsToDisplay: Ref<Wallet[]>
+  featuredWallets: Ref<Wallet[]>
+  hiddenWallets: Ref<Wallet[]>
+  selectWallet: (name: WalletName) => void
+}
 
 export default defineComponent({
   components: {
@@ -41,87 +35,104 @@ export default defineComponent({
   },
   props: {
     featured: { type: Number, default: 3 },
-    container: { type: String, default: "body" },
+    container: { type: String, default: 'body' },
     logo: String,
     dark: Boolean,
   },
-  setup(this: void, props, { slots }): WalletModalProviderRawBindings {
-    const { featured, container, logo, dark } = toRefs(props);
-    const modalPanel = ref(null) as Ref<HTMLElement | null>;
-    const modalOpened = ref(false);
-    const openModal = () => (modalOpened.value = true);
-    const closeModal = () => (modalOpened.value = false);
-    const hasLogo = computed(() => !!slots.logo || !!logo.value);
+  setup(this: void, properties, { slots }): WalletModalProviderRawBindings {
+    const { featured, container, logo, dark } = toRefs(properties)
+    const modalOpened = ref(false)
+    const openModal = () => (modalOpened.value = true)
+    const closeModal = () => (modalOpened.value = false)
+    const hasLogo = computed(() => !!slots.logo || !!logo.value)
 
-    const { wallets, select: selectWallet } = useWallet();
+    const modalPanel = useTemplateRef<HTMLElement>('modalPanel')
+
+    const { wallets, select: selectWallet } = useWallet()
     const orderedWallets = computed(() => {
-      const installed: Wallet[] = [];
-      const notDetected: Wallet[] = [];
-      const loadable: Wallet[] = [];
+      const installed: Wallet[] = []
+      const notDetected: Wallet[] = []
+      const loadable: Wallet[] = []
 
-      wallets.value.forEach((wallet) => {
-        if (wallet.readyState === WalletReadyState.NotDetected) {
-          notDetected.push(wallet);
-        } else if (wallet.readyState === WalletReadyState.Loadable) {
-          loadable.push(wallet);
-        } else if (wallet.readyState === WalletReadyState.Installed) {
-          installed.push(wallet);
+      for (const wallet of wallets.value) {
+        switch (wallet.readyState) {
+          case WalletReadyState.NotDetected: {
+            notDetected.push(wallet)
+
+            break
+          }
+
+          case WalletReadyState.Loadable: {
+            loadable.push(wallet)
+
+            break
+          }
+
+          case WalletReadyState.Installed: {
+            installed.push(wallet)
+
+            break
+          }
+
+        // No default
         }
-      });
+      }
 
-      return [...installed, ...loadable, ...notDetected];
-    });
+      return [...installed, ...loadable, ...notDetected]
+    })
 
-    const expandedWallets = ref(false);
+    const expandedWallets = ref(false)
     const featuredWallets = computed(() =>
-      orderedWallets.value.slice(0, featured.value)
-    );
+      orderedWallets.value.slice(0, featured.value),
+    )
     const hiddenWallets = computed(() =>
-      orderedWallets.value.slice(featured.value)
-    );
+      orderedWallets.value.slice(featured.value),
+    )
     const walletsToDisplay = computed(() =>
-      expandedWallets.value ? wallets.value : featuredWallets.value
-    );
+      expandedWallets.value ? wallets.value : featuredWallets.value,
+    )
 
     // Close the modal when clicking outside of it or when pressing Escape.
-    onClickOutside(modalPanel, closeModal);
-    onKeyStroke("Escape", closeModal);
+    onClickOutside(modalPanel, closeModal)
+    onKeyStroke('Escape', closeModal)
 
     // Ensures pressing Tab backwards and forwards stays within the modal.
-    onKeyStroke("Tab", (event: KeyboardEvent) => {
-      const focusableElements =
-        modalPanel.value?.querySelectorAll("button") ?? [];
-      const firstElement = focusableElements?.[0];
-      const lastElement = focusableElements?.[focusableElements.length - 1];
+    onKeyStroke('Tab', (event: KeyboardEvent) => {
+      const focusableElements = modalPanel.value?.querySelectorAll('button') ?? []
+      const firstElement = focusableElements?.[0]
+      const lastElement = focusableElements?.[focusableElements.length - 1]
 
       if (
-        event.shiftKey &&
-        document.activeElement === firstElement &&
-        lastElement
+        event.shiftKey
+        && document.activeElement === firstElement
+        && lastElement
       ) {
-        lastElement.focus();
-        event.preventDefault();
-      } else if (
-        !event.shiftKey &&
-        document.activeElement === lastElement &&
-        firstElement
-      ) {
-        firstElement.focus();
-        event.preventDefault();
+        lastElement.focus()
+        event.preventDefault()
       }
-    });
+      else if (
+        !event.shiftKey
+        && document.activeElement === lastElement
+        && firstElement
+      ) {
+        firstElement.focus()
+        event.preventDefault()
+      }
+    })
 
     // Bring focus inside the modal when it opens.
     watch(modalOpened, (isOpened) => {
-      if (!isOpened) return;
+      if (!isOpened) {
+        return
+      }
       nextTick(() =>
-        modalPanel.value?.querySelectorAll("button")?.[0]?.focus()
-      );
-    });
+        modalPanel.value?.querySelectorAll('button')?.[0]?.focus(),
+      )
+    })
 
     // Lock the body scroll when the modal opens.
-    const scrollLock = useScrollLock(document.body);
-    watch(modalOpened, (isOpened) => (scrollLock.value = isOpened));
+    const scrollLock = useScrollLock(document.body)
+    watch(modalOpened, isOpened => (scrollLock.value = isOpened))
 
     // Define the bindings given to scoped slots.
     const scope = {
@@ -139,21 +150,21 @@ export default defineComponent({
       featuredWallets,
       hiddenWallets,
       selectWallet,
-    };
+    }
 
     return {
       scope,
       ...scope,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
   <div :class="dark ? 'swv-dark' : ''">
-    <slot v-bind="scope"></slot>
+    <slot v-bind="scope" />
   </div>
-  <teleport :to="container" v-if="modalOpened">
+  <teleport v-if="modalOpened" :to="container">
     <div
       aria-labelledby="swv-modal-title"
       aria-modal="true"
@@ -164,19 +175,21 @@ export default defineComponent({
       <slot name="overlay" v-bind="scope">
         <div class="swv-modal-overlay" />
       </slot>
-      <div class="swv-modal-container" ref="modalPanel">
+      <div ref="modalPanel" class="swv-modal-container">
         <slot name="modal" v-bind="scope">
           <div
             class="swv-modal-wrapper"
             :class="{ 'swv-modal-wrapper-no-logo': !hasLogo }"
           >
-            <div class="swv-modal-logo-wrapper" v-if="hasLogo">
+            <div v-if="hasLogo" class="swv-modal-logo-wrapper">
               <slot name="logo" v-bind="scope">
-                <img alt="logo" class="swv-modal-logo" :src="logo" />
+                <img alt="logo" class="swv-modal-logo" :src="logo">
               </slot>
             </div>
-            <h1 class="swv-modal-title" id="swv-modal-title">Connect Wallet</h1>
-            <button @click.prevent="closeModal" class="swv-modal-button-close">
+            <h1 id="swv-modal-title" class="swv-modal-title">
+              Connect Wallet
+            </h1>
+            <button class="swv-modal-button-close" @click.prevent="closeModal">
               <svg width="14" height="14">
                 <path
                   d="M14 12.461 8.3 6.772l5.234-5.233L12.006 0 6.772 5.234 1.54 0 0 1.539l5.234 5.233L0 12.006l1.539 1.528L6.772 8.3l5.69 5.7L14 12.461z"
@@ -193,8 +206,8 @@ export default defineComponent({
                 "
               >
                 <button class="swv-button">
-                  <wallet-icon :wallet="wallet"></wallet-icon>
-                  <p v-text="wallet.adapter.name"></p>
+                  <wallet-icon :wallet="wallet" />
+                  <span>{{ wallet.adapter.name }}</span>
                   <div
                     v-if="wallet.readyState === 'Installed'"
                     class="swv-wallet-status"

@@ -1,13 +1,14 @@
+import type { Adapter } from '@solana/wallet-adapter-base'
+import type { Cluster } from '@solana/web3.js'
+import type { Ref } from 'vue'
 import {
   createDefaultAddressSelector,
   createDefaultAuthorizationResultCache,
   createDefaultWalletNotFoundHandler,
   SolanaMobileWalletAdapter,
   SolanaMobileWalletAdapterWalletName,
-} from "@solana-mobile/wallet-adapter-mobile";
-import type { Adapter } from "@solana/wallet-adapter-base";
-import type { Cluster } from "@solana/web3.js";
-import { computed, Ref } from "vue";
+} from '@solana-mobile/wallet-adapter-mobile'
+import { computed } from 'vue'
 
 /**
  * Auto-discovers wallet adapters that follows the mobile wallet standard
@@ -16,35 +17,35 @@ import { computed, Ref } from "vue";
 export function useMobileWalletAdapters(
   adapters: Ref<Adapter[]>,
   isMobile: Ref<boolean>,
-  uriForAppIdentity: string | null,
-  cluster: Ref<Cluster>
+  uriForAppIdentity: string | undefined,
+  cluster: Ref<Cluster>,
 ): Ref<Adapter[]> {
-  const mwaAdapter = computed(() => {
-    if (!isMobile.value) return null;
+  const mobileWalletAdapter = computed(() => {
+    if (!isMobile.value) {
+      return
+    }
 
     const existingMobileWalletAdapter = adapters.value.find(
-      (adapter) => adapter.name === SolanaMobileWalletAdapterWalletName
-    );
+      adapter => adapter.name === SolanaMobileWalletAdapterWalletName,
+    )
+
     if (existingMobileWalletAdapter) {
-      return existingMobileWalletAdapter;
+      return existingMobileWalletAdapter
     }
+
     return new SolanaMobileWalletAdapter({
       addressSelector: createDefaultAddressSelector(),
       appIdentity: { uri: uriForAppIdentity || undefined },
       authorizationResultCache: createDefaultAuthorizationResultCache(),
-      cluster: cluster.value,
+      chain: cluster.value,
       onWalletNotFound: createDefaultWalletNotFoundHandler(),
-    });
-  });
+    })
+  })
 
   return computed(() => {
-    if (
-      mwaAdapter.value == null ||
-      adapters.value.indexOf(mwaAdapter.value) !== -1
-    ) {
-      return adapters.value;
+    if (!mobileWalletAdapter.value || adapters.value.includes(mobileWalletAdapter.value)) {
+      return adapters.value
     }
-
-    return [mwaAdapter.value, ...adapters.value];
-  });
+    return [mobileWalletAdapter.value, ...adapters.value]
+  })
 }

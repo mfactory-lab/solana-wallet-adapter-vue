@@ -1,47 +1,38 @@
-<script lang="ts">
-import { computed, defineComponent, toRefs } from "vue";
-import { useWallet } from "@/useWallet";
-import WalletIcon from "./WalletIcon.vue";
+<script lang="ts" setup>
+import { computed } from 'vue'
+import { useWallet } from '~/useWallet'
+import WalletIcon from './WalletIcon.vue'
 
-export default defineComponent({
-  components: {
-    WalletIcon,
-  },
-  props: {
-    disabled: Boolean,
-  },
-  setup(props, { emit }) {
-    const { disabled } = toRefs(props);
-    const { wallet, connect, connecting, connected } = useWallet();
+const { disabled = false } = defineProps<{ disabled?: boolean }>()
+const emit = defineEmits(['click'])
 
-    const content = computed(() => {
-      if (connecting.value) return "Connecting ...";
-      if (connected.value) return "Connected";
-      if (wallet.value) return "Connect";
-      return "Connect Wallet";
-    });
+const { wallet, connect, connecting, connected } = useWallet()
 
-    const onClick = (event: MouseEvent) => {
-      emit("click", event);
-      if (event.defaultPrevented) return;
-      connect().catch(() => {});
-    };
+const content = computed(() => {
+  if (connecting.value)
+    return 'Connecting ...'
+  if (connected.value)
+    return 'Connected'
+  if (wallet.value)
+    return 'Connect'
+  return 'Connect Wallet'
+})
 
-    const scope = {
-      wallet,
-      disabled,
-      connecting,
-      connected,
-      content,
-      onClick,
-    };
+function onClick(event: MouseEvent) {
+  emit('click', event)
+  if (event.defaultPrevented)
+    return
+  connect().catch(() => {})
+}
 
-    return {
-      scope,
-      ...scope,
-    };
-  },
-});
+const scope = {
+  wallet,
+  disabled,
+  connecting,
+  connected,
+  content,
+  onClick,
+}
 </script>
 
 <template>
@@ -51,8 +42,8 @@ export default defineComponent({
       :disabled="disabled || !wallet || connecting || connected"
       @click="onClick"
     >
-      <wallet-icon v-if="wallet" :wallet="wallet"></wallet-icon>
-      <p v-text="content"></p>
+      <wallet-icon v-if="wallet" :wallet="wallet" />
+      <span>{{ content }}</span>
     </button>
   </slot>
 </template>

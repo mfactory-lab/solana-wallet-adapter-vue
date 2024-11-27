@@ -1,8 +1,9 @@
-import type { Adapter } from "@solana/wallet-adapter-base";
-import { WalletNotReadyError } from "@solana/wallet-adapter-base";
-import type { Cluster } from "@solana/web3.js";
-import type { Ref } from "vue";
-import { ref, shallowRef } from "vue";
+import type { Adapter } from '@solana/wallet-adapter-base'
+import type { Cluster } from '@solana/web3.js'
+import type { Ref } from 'vue'
+import type { WalletStore, WalletStoreProps } from './types'
+import { WalletNotReadyError } from '@solana/wallet-adapter-base'
+import { ref, shallowRef } from 'vue'
 import {
   useAdapterListeners,
   useAutoConnect,
@@ -16,37 +17,37 @@ import {
   useUnloadingWindow,
   useWalletState,
   useWrapAdaptersInWallets,
-} from "./composables";
-import { WalletNotSelectedError } from "./errors";
-import type { WalletStore, WalletStoreProps } from "./types";
+} from './composables'
+import { WalletNotSelectedError } from './errors'
 
-export const createWalletStore = ({
+export function createWalletStore({
   wallets: initialAdapters = [],
   autoConnect: initialAutoConnect = false,
-  cluster: initialCluster = "mainnet-beta",
+  cluster: initialCluster = 'mainnet-beta',
   onError,
-  localStorageKey = "walletName",
-}: WalletStoreProps): WalletStore => {
+  localStorageKey = 'walletName',
+}: WalletStoreProps): WalletStore {
   // Initial variables and loading states.
-  const cluster: Ref<Cluster> = ref(initialCluster);
-  const connecting = ref<boolean>(false);
-  const disconnecting = ref<boolean>(false);
+  const cluster: Ref<Cluster> = ref(initialCluster)
+  const connecting = ref<boolean>(false)
+  const disconnecting = ref<boolean>(false)
 
   // From raw adapters to computed list of wallets.
-  const rawAdapters: Ref<Adapter[]> = shallowRef(initialAdapters);
-  const rawAdaptersWithSwa = useStandardWalletAdapters(rawAdapters);
-  const { isMobile, uriForAppIdentity } = useEnvironment(rawAdaptersWithSwa);
+  const rawAdapters: Ref<Adapter[]> = shallowRef(initialAdapters)
+  const adaptersWithStandardAdapters = useStandardWalletAdapters(rawAdapters)
+  const { isMobile, uriForAppIdentity } = useEnvironment(adaptersWithStandardAdapters)
   const adapters = useMobileWalletAdapters(
-    rawAdaptersWithSwa,
+    adaptersWithStandardAdapters,
     isMobile,
     uriForAppIdentity,
-    cluster
-  );
-  const wallets = useWrapAdaptersInWallets(adapters);
+    cluster,
+  )
+  const wallets = useWrapAdaptersInWallets(adapters)
 
   // Wallet selection and state.
-  const { name, isUsingMwaAdapterOnMobile, select, deselect } =
-    useSelectWalletName(localStorageKey, isMobile);
+  const { name, isUsingMwaOnMobile, select, deselect }
+    = useSelectWalletName(localStorageKey, isMobile)
+
   const {
     wallet,
     publicKey,
@@ -54,67 +55,78 @@ export const createWalletStore = ({
     readyState,
     ready,
     refreshWalletState,
-  } = useWalletState(wallets, name);
+  } = useWalletState(wallets, name)
 
   // Window listeners and error handling.
-  const unloadingWindow = useUnloadingWindow(isUsingMwaAdapterOnMobile);
-  const handleError = useErrorHandler(unloadingWindow, onError);
+  const unloadingWindow = useUnloadingWindow(isUsingMwaOnMobile)
+  const handleError = useErrorHandler(unloadingWindow, onError)
 
   // Wallet listeners.
-  useReadyStateListeners(wallets);
+  useReadyStateListeners(wallets)
   useAdapterListeners(
     wallet,
     unloadingWindow,
-    isUsingMwaAdapterOnMobile,
+    isUsingMwaOnMobile,
     deselect,
     refreshWalletState,
-    handleError
-  );
+    handleError,
+  )
 
   // Auto-connect feature.
   const autoConnect = useAutoConnect(
     initialAutoConnect,
     wallet,
-    isUsingMwaAdapterOnMobile,
+    isUsingMwaOnMobile,
     connecting,
     connected,
     ready,
-    deselect
-  );
+    deselect,
+  )
 
   // Transaction methods.
-  const { sendTransaction, signTransaction, signAllTransactions, signMessage } =
-    useTransactionMethods(wallet, handleError);
+  const { sendTransaction, signTransaction, signAllTransactions, signMessage }
+    = useTransactionMethods(wallet, handleError)
 
   // Connect the wallet.
   const connect = async (): Promise<void> => {
-    if (connected.value || connecting.value || disconnecting.value) return;
-    if (!wallet.value) throw handleError(new WalletNotSelectedError());
-    const adapter = wallet.value.adapter;
-    if (!ready.value) throw handleError(new WalletNotReadyError(), adapter);
+    if (connected.value || connecting.value || disconnecting.value) {
+      return
+    }
+    if (!wallet.value) {
+      throw handleError(new WalletNotSelectedError())
+    }
+    const adapter = wallet.value.adapter
+    if (!ready.value) {
+      throw handleError(new WalletNotReadyError(), adapter)
+    }
 
     try {
-      connecting.value = true;
-      await adapter.connect();
-    } catch (error: any) {
-      deselect();
-      // handleError will also be called.
-      throw error;
-    } finally {
-      connecting.value = false;
+      connecting.value = true
+      await adapter.connect()
     }
-  };
+    catch (error: any) {
+      deselect()
+      // handleError will also be called.
+      throw error
+    }
+    finally {
+      connecting.value = false
+    }
+  }
 
   // Disconnect the wallet adapter.
   const disconnect = async (): Promise<void> => {
-    if (disconnecting.value || !wallet.value) return;
-    try {
-      disconnecting.value = true;
-      await wallet.value.adapter.disconnect();
-    } finally {
-      disconnecting.value = false;
+    if (disconnecting.value || !wallet.value) {
+      return
     }
-  };
+    try {
+      disconnecting.value = true
+      await wallet.value.adapter.disconnect()
+    }
+    finally {
+      disconnecting.value = false
+    }
+  }
 
   // Return the created store.
   return {
@@ -140,5 +152,5 @@ export const createWalletStore = ({
     signTransaction,
     signAllTransactions,
     signMessage,
-  };
-};
+  }
+}

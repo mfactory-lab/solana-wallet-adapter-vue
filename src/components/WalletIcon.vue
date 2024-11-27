@@ -1,15 +1,7 @@
-<script lang="ts">
-import { defineComponent, PropType, toRefs } from "vue";
-import type { Wallet } from "@/types";
+<script lang="ts" setup>
+import type { Wallet } from '~/types'
 
-export default defineComponent({
-  props: {
-    wallet: Object as PropType<Wallet>,
-  },
-  setup(props) {
-    return toRefs(props);
-  },
-});
+const { wallet } = defineProps<{ wallet: Wallet }>()
 </script>
 
 <template>
@@ -18,6 +10,6 @@ export default defineComponent({
       v-if="wallet"
       :src="wallet.adapter.icon"
       :alt="`${wallet.adapter.name} icon`"
-    />
+    >
   </i>
 </template>

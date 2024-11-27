@@ -1,3 +1,3 @@
-export * from "./Wallet";
-export * from "./WalletStore";
-export * from "./WalletStoreProps";
+export * from './Wallet'
+export * from './WalletStore'
+export * from './WalletStoreProps'

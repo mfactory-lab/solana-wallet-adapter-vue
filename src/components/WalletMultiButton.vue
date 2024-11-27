@@ -1,81 +1,62 @@
-<script lang="ts">
-import { computed, defineComponent, ref, toRefs } from "vue";
-import { onClickOutside, useClipboard } from "@vueuse/core";
-import { useWallet } from "@/useWallet";
-import WalletConnectButton from "./WalletConnectButton.vue";
-import WalletIcon from "./WalletIcon.vue";
-import WalletModalProvider from "./WalletModalProvider.vue";
+<script lang="ts" setup>
+import { onClickOutside, useClipboard } from '@vueuse/core'
+import { computed, ref, useTemplateRef } from 'vue'
+import { useWallet } from '~/useWallet'
+import WalletConnectButton from './WalletConnectButton.vue'
+import WalletIcon from './WalletIcon.vue'
+import WalletModalProvider from './WalletModalProvider.vue'
 
-export default defineComponent({
-  components: {
-    WalletConnectButton,
-    WalletIcon,
-    WalletModalProvider,
-  },
-  props: {
-    featured: { type: Number, default: 3 },
-    container: { type: String, default: "body" },
-    logo: String,
-    dark: Boolean,
-  },
-  setup(props) {
-    const { featured, container, logo, dark } = toRefs(props);
-    const { publicKey, wallet, disconnect } = useWallet();
+const { featured = 3, container = 'body', logo, dark = false } = defineProps<{
+  featured?: number
+  container?: string
+  logo?: string
+  dark?: boolean
+}>()
 
-    const dropdownPanel = ref<HTMLElement>();
-    const dropdownOpened = ref(false);
-    const openDropdown = () => {
-      dropdownOpened.value = true;
-    };
-    const closeDropdown = () => {
-      dropdownOpened.value = false;
-    };
-    onClickOutside(dropdownPanel, closeDropdown);
+const { publicKey, wallet, disconnect } = useWallet()
 
-    const publicKeyBase58 = computed(() => publicKey.value?.toBase58());
-    const publicKeyTrimmed = computed(() => {
-      if (!wallet.value || !publicKeyBase58.value) return null;
-      return (
-        publicKeyBase58.value.slice(0, 4) +
-        ".." +
-        publicKeyBase58.value.slice(-4)
-      );
-    });
+const dropdownPanel = useTemplateRef<HTMLElement>('dropdownPanel')
 
-    const {
-      copy,
-      copied: addressCopied,
-      isSupported: canCopy,
-    } = useClipboard();
-    const copyAddress = () =>
-      publicKeyBase58.value && copy(publicKeyBase58.value);
+const dropdownOpened = ref(false)
+function openDropdown() {
+  dropdownOpened.value = true
+}
+function closeDropdown() {
+  dropdownOpened.value = false
+}
+onClickOutside(dropdownPanel, closeDropdown)
 
-    // Define the bindings given to scoped slots.
-    const scope = {
-      featured,
-      container,
-      logo,
-      dark,
-      wallet,
-      publicKey,
-      publicKeyTrimmed,
-      publicKeyBase58,
-      canCopy,
-      addressCopied,
-      dropdownPanel,
-      dropdownOpened,
-      openDropdown,
-      closeDropdown,
-      copyAddress,
-      disconnect,
-    };
+const publicKeyBase58 = computed(() => publicKey.value?.toBase58())
 
-    return {
-      scope,
-      ...scope,
-    };
-  },
-});
+const publicKeyTrimmed = computed(() => {
+  if (!wallet.value || !publicKeyBase58.value) {
+    return
+  }
+  return `${publicKeyBase58.value.slice(0, 4)}..${publicKeyBase58.value.slice(-4)}`
+})
+
+const { copy, copied: addressCopied, isSupported: canCopy } = useClipboard()
+const copyAddress = () => publicKeyBase58.value && copy(publicKeyBase58.value)
+
+// Define the bindings given to scoped slots.
+const scope = {
+  featured,
+  container,
+  logo,
+  dark,
+  wallet,
+  publicKey,
+  publicKeyTrimmed,
+  publicKeyBase58,
+  canCopy,
+  addressCopied,
+  dropdownPanel,
+  dropdownOpened,
+  openDropdown,
+  closeDropdown,
+  copyAddress,
+  disconnect,
+}
 </script>
 
 <template>
@@ -96,7 +77,7 @@ export default defineComponent({
         </button>
         <wallet-connect-button
           v-else-if="!publicKeyBase58"
-        ></wallet-connect-button>
+        />
         <div v-else class="swv-dropdown">
           <slot name="dropdown-button" v-bind="{ ...modalScope, ...scope }">
             <button
@@ -106,44 +87,44 @@ export default defineComponent({
               :title="publicKeyBase58"
               @click="openDropdown"
             >
-              <wallet-icon :wallet="wallet"></wallet-icon>
-              <p v-text="publicKeyTrimmed"></p>
+              <wallet-icon :wallet="wallet" />
+              <span>{{ publicKeyTrimmed }}</span>
             </button>
           </slot>
           <slot name="dropdown" v-bind="{ ...modalScope, ...scope }">
             <ul
+              ref="dropdownPanel"
               aria-label="dropdown-list"
               class="swv-dropdown-list"
               :class="{ 'swv-dropdown-list-active': dropdownOpened }"
-              ref="dropdownPanel"
               role="menu"
             >
               <slot name="dropdown-list" v-bind="{ ...modalScope, ...scope }">
                 <li
                   v-if="canCopy"
-                  @click="copyAddress"
                   class="swv-dropdown-list-item"
                   role="menuitem"
+                  @click="copyAddress"
                 >
                   {{ addressCopied ? "Copied" : "Copy address" }}
                 </li>
                 <li
+                  class="swv-dropdown-list-item"
+                  role="menuitem"
                   @click="
                     modalScope.openModal();
                     closeDropdown();
                   "
-                  class="swv-dropdown-list-item"
-                  role="menuitem"
                 >
                   Change wallet
                 </li>
                 <li
+                  class="swv-dropdown-list-item"
+                  role="menuitem"
                   @click="
                     disconnect();
                     closeDropdown();
                   "
-                  class="swv-dropdown-list-item"
-                  role="menuitem"
                 >
                   Disconnect
                 </li>
@@ -156,10 +137,10 @@ export default defineComponent({
 
     <!-- Enable modal overrides. -->
     <template #overlay="modalScope">
-      <slot name="modal-overlay" v-bind="{ ...modalScope, ...scope }"></slot>
+      <slot name="modal-overlay" v-bind="{ ...modalScope, ...scope }" />
     </template>
     <template #modal="modalScope">
-      <slot name="modal" v-bind="{ ...modalScope, ...scope }"></slot>
+      <slot name="modal" v-bind="{ ...modalScope, ...scope }" />
     </template>
   </wallet-modal-provider>
 </template>

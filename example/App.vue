@@ -1,58 +1,64 @@
 <script>
-import { ref, computed, watchEffect } from "vue";
-import { useLocalStorage } from "@vueuse/core";
+import { AnchorProvider, Program } from '@coral-xyz/anchor'
 import {
-  Connection,
-  PublicKey,
-  Keypair,
   clusterApiUrl,
+  Connection,
+  Keypair,
+  PublicKey,
   SystemProgram,
-} from "@solana/web3.js";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { WalletMultiButton, useAnchorWallet } from "../src";
-import idl from "./idl.json";
+} from '@solana/web3.js'
+import { useLocalStorage } from '@vueuse/core'
+import { computed, ref, watchEffect } from 'vue'
+import { useAnchorWallet, WalletMultiButton } from '../src'
+import idl from './idl.json'
 
-const programID = new PublicKey(idl.metadata.address);
-const preflightCommitment = "processed";
+const programID = new PublicKey(idl.metadata.address)
+const preflightCommitment = 'processed'
 
 export default {
   components: {
     WalletMultiButton,
   },
   setup() {
-    const dark = ref(false);
-    const wallet = useAnchorWallet();
+    const dark = ref(false)
+    const wallet = useAnchorWallet()
     const connection = new Connection(
-      clusterApiUrl("devnet"),
-      preflightCommitment
-    );
+      clusterApiUrl('devnet'),
+      preflightCommitment,
+    )
     const provider = computed(() => {
-      if (!wallet.value) return;
+      if (!wallet.value) {
+        return
+      }
       return new AnchorProvider(connection, wallet.value, {
         preflightCommitment,
-      });
-    });
+      })
+    })
     const program = computed(() => {
-      if (!provider.value) return;
-      return new Program(idl, programID, provider.value);
-    });
+      if (!provider.value) {
+        return
+      }
+      return new Program(idl, programID, provider.value)
+    })
 
-    const counterPublicKey = useLocalStorage("counterPublicKey", null);
-    const counter = ref(0);
+    const counterPublicKey = useLocalStorage('counterPublicKey')
+    const counter = ref(0)
     watchEffect(async () => {
-      if (!counterPublicKey.value || !program.value) return;
+      if (!counterPublicKey.value || !program.value) {
+        return
+      }
       const account = await program.value.account.baseAccount.fetch(
-        counterPublicKey.value
-      );
-      counter.value = account.count.toNumber();
-    });
+        counterPublicKey.value,
+      )
+      counter.value = account.count.toNumber()
+    })
 
     const createCounter = async () => {
       if (!wallet.value) {
-        return alert("Connect your wallet first.");
+        return alert('Connect your wallet first.')
       }
 
-      const newCounter = Keypair.generate();
+      const newCounter = Keypair.generate()
       await program.value.methods
         .create()
         .accounts({
@@ -61,23 +67,24 @@ export default {
           systemProgram: SystemProgram.programId,
         })
         .signers([newCounter])
-        .rpc();
-      counterPublicKey.value = newCounter.publicKey;
-    };
+        .rpc()
+      counterPublicKey.value = newCounter.publicKey
+    }
 
     const incrementCounter = async () => {
       if (!wallet.value) {
-        return alert("Connect your wallet first.");
-      } else if (!counterPublicKey.value) {
-        return alert("Create a new counter first.");
+        return alert('Connect your wallet first.')
+      }
+      else if (!counterPublicKey.value) {
+        return alert('Create a new counter first.')
       }
 
       await program.value.methods
         .increment()
         .accounts({ baseAccount: counterPublicKey.value })
-        .rpc();
-      counter.value += 1;
-    };
+        .rpc()
+      counter.value += 1
+    }
 
     return {
       dark,
@@ -85,9 +92,9 @@ export default {
       counter,
       createCounter,
       incrementCounter,
-    };
+    }
   },
-};
+}
 </script>
 
 <template>
@@ -99,13 +106,13 @@ export default {
     <div class="absolute top-0 right-0 p-8 flex space-x-8">
       <!-- Dark Button. -->
       <button
-        @click="dark = !dark"
         class="rounded-full p-3"
         :class="
           dark
             ? 'bg-white/10 hover:bg-white/20 text-gray-200'
             : 'bg-black/10 hover:bg-black/20 text-gray-600'
         "
+        @click="dark = !dark"
       >
         <svg
           v-if="dark"
@@ -140,7 +147,7 @@ export default {
       </button>
 
       <!-- Solana Wallets Vue. -->
-      <wallet-multi-button :dark="dark"></wallet-multi-button>
+      <wallet-multi-button :dark="dark" />
     </div>
 
     <!-- Centered. -->
@@ -159,7 +166,7 @@ export default {
             class="font-bold text-5xl mt-2"
             :class="dark ? 'text-white' : 'text-gray-900'"
             v-text="counterPublicKey ? counter : 'Not Set'"
-          ></p>
+          />
         </div>
 
         <div class="flex">
@@ -181,9 +188,13 @@ export default {
       </div>
 
       <div class="text-sm mt-8">
-        <p class="text-xs font-semibold text-gray-400">Wallet address:</p>
+        <p class="text-xs font-semibold text-gray-400">
+          Wallet address:
+        </p>
         <p>{{ $wallet.publicKey.value?.toBase58() ?? "Not connected" }}</p>
-        <p class="text-xs font-semibold text-gray-400 mt-4">Counter address:</p>
+        <p class="text-xs font-semibold text-gray-400 mt-4">
+          Counter address:
+        </p>
         <p>{{ counterPublicKey ?? "Not created" }}</p>
       </div>
     </div>

@@ -1,45 +1,34 @@
-<script lang="ts">
-import { computed, defineComponent, toRefs } from "vue";
-import { useWallet } from "@/useWallet";
-import WalletIcon from "./WalletIcon.vue";
+<script lang="ts" setup>
+import { computed } from 'vue'
+import { useWallet } from '~/useWallet'
+import WalletIcon from './WalletIcon.vue'
 
-export default defineComponent({
-  components: {
-    WalletIcon,
-  },
-  props: {
-    disabled: Boolean,
-  },
-  setup(props, { emit }) {
-    const { disabled } = toRefs(props);
-    const { wallet, disconnect, disconnecting } = useWallet();
+const { disabled = false } = defineProps<{ disabled?: boolean }>()
+const emit = defineEmits(['click'])
 
-    const content = computed(() => {
-      if (disconnecting.value) return "Disconnecting ...";
-      if (wallet.value) return "Disconnect";
-      return "Disconnect Wallet";
-    });
+const { wallet, disconnect, disconnecting } = useWallet()
+const content = computed(() => {
+  if (disconnecting.value)
+    return 'Disconnecting ...'
+  if (wallet.value)
+    return 'Disconnect'
+  return 'Disconnect Wallet'
+})
 
-    const handleClick = (event: MouseEvent) => {
-      emit("click", event);
-      if (event.defaultPrevented) return;
-      disconnect().catch(() => {});
-    };
+function handleClick(event: MouseEvent) {
+  emit('click', event)
+  if (event.defaultPrevented)
+    return
+  disconnect().catch(() => {})
+}
 
-    const scope = {
-      wallet,
-      disconnecting,
-      disabled,
-      content,
-      handleClick,
-    };
-
-    return {
-      scope,
-      ...scope,
-    };
-  },
-});
+const scope = {
+  wallet,
+  disconnecting,
+  disabled,
+  content,
+  handleClick,
+}
 </script>
 
 <template>
@@ -49,8 +38,8 @@ export default defineComponent({
       :disabled="disabled || disconnecting || !wallet"
       @click="handleClick"
     >
-      <wallet-icon v-if="wallet" :wallet="wallet"></wallet-icon>
-      <p v-text="content"></p>
+      <wallet-icon v-if="wallet" :wallet="wallet" />
+      <span>{{ content }}</span>
     </button>
   </slot>
 </template>

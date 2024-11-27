@@ -1,42 +1,43 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import * as path from "path";
+import { resolve } from 'node:path'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), dts({
+    rollupTypes: true,
+  })],
   resolve: {
-    dedupe: ["vue"],
+    dedupe: ['vue'],
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      '~/': `${resolve(__dirname, 'src')}/`,
     },
-  },
-  define: {
-    "process.env": {},
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: "solana-wallets-vue",
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'index',
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
       external: [
-        "@solana/wallet-adapter-base",
-        "@solana/web3.js",
-        "@vueuse/core",
-        "vue",
+        '@solana/web3.js',
+        '@solana/wallet-adapter-base',
+        '@solana-mobile/wallet-adapter-mobile',
+        'vue',
       ],
       output: {
-        exports: "named",
+        exports: 'named',
         globals: {
-          "@solana/wallet-adapter-base": "SolanaWalletAdapterBase",
-          "@solana/web3.js": "SolanaWeb3",
-          "@vueuse/core": "VueUseCore",
-          vue: "Vue",
+          '@solana/web3.js': 'SolanaWeb3',
+          '@solana/wallet-adapter-base': 'SolanaWalletAdapterBase',
+          '@solana-mobile/wallet-adapter-mobile': 'SolanaWalletAdapterMobile',
+          'vue': 'Vue',
         },
       },
     },
     sourcemap: true,
     minify: false,
   },
-});
+})

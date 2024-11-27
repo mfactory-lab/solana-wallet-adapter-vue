@@ -1,6 +1,6 @@
-import type { Adapter, WalletReadyState } from "@solana/wallet-adapter-base";
+import type { Adapter, WalletReadyState } from '@solana/wallet-adapter-base'
 
-export type Wallet = {
-  adapter: Adapter;
-  readyState: WalletReadyState;
-};
+export interface Wallet {
+  adapter: Adapter
+  readyState: WalletReadyState
+}

@@ -1,4 +1,4 @@
-# Solana Wallets Vue
+# Solana Wallet Adapter Vue
 
 Integrates Solana wallets in your Vue 3 applications.
 
@@ -19,20 +19,20 @@ npm install solana-wallets-vue @solana/wallet-adapter-wallets
 Next, you can install Solana Wallets Vue as a plugin like so.
 
 ```js
-import { createApp } from "vue";
-import App from "./App.vue";
-import SolanaWallets from "solana-wallets-vue";
-
-// You can either import the default styles or create your own.
-import "solana-wallets-vue/styles.css";
-
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
+} from '@solana/wallet-adapter-wallets'
+import SolanaWallets from 'solana-wallets-vue'
+
+import { createApp } from 'vue'
+
+import App from './App.vue'
+
+// You can either import the default styles or create your own.
+import 'solana-wallets-vue/styles.css'
 
 const walletOptions = {
   wallets: [
@@ -41,9 +41,9 @@ const walletOptions = {
     new SolflareWalletAdapter({ network: WalletAdapterNetwork.Devnet }),
   ],
   autoConnect: true,
-};
+}
 
-createApp(App).use(SolanaWallets, walletOptions).mount("#app");
+createApp(App).use(SolanaWallets, walletOptions).mount('#app')
 ```
 
 This will initialise the wallet store and create a new `$wallet` global property that you can access inside any component.
@@ -51,19 +51,19 @@ This will initialise the wallet store and create a new `$wallet` global property
 Note that you can also initialise the wallet store manually using the `initWallet` method like so.
 
 ```js
-import { initWallet } from "solana-wallets-vue";
-initWallet(walletOptions);
+import { initWallet } from 'solana-wallets-vue'
+initWallet(walletOptions)
 ```
 
 Finally, import and render the `WalletMultiButton` component to allow users to select a wallet et connect to it.
 
 ```vue
 <script setup>
-import { WalletMultiButton } from "solana-wallets-vue";
+import { WalletMultiButton } from 'solana-wallets-vue'
 </script>
 
 <template>
-  <wallet-multi-button></wallet-multi-button>
+  <wallet-multi-button />
 </template>
 ```
 
@@ -79,14 +79,15 @@ You can then call `useWallet()` at any time to access the wallet store — or ac
 
 Here's an example of a function that sends one lamport to a random address.
 
-```js
-import { useWallet } from 'solana-wallets-vue';
-import { Connection, clusterApiUrl, Keypair, SystemProgram, Transaction } from '@solana/web3.js';
+```typescript
+import { clusterApiUrl, Connection, Keypair, SystemProgram, Transaction } from '@solana/web3.js'
+import { useWallet } from 'solana-wallets-vue'
 
-export const sendOneLamportToRandomAddress = () => {
+export async function sendOneLamportToRandomAddress() {
   const connection = new Connection(clusterApiUrl('devnet'))
-  const { publicKey, sendTransaction } = useWallet();
-  if (!publicKey.value) return;
+  const { publicKey, sendTransaction } = useWallet()
+  if (!publicKey.value)
+    return
 
   const transaction = new Transaction().add(
     SystemProgram.transfer({
@@ -94,11 +95,11 @@ export const sendOneLamportToRandomAddress = () => {
       toPubkey: Keypair.generate().publicKey,
       lamports: 1,
     })
-  );
+  )
 
-  const signature = await sendTransaction(transaction, connection);
-  await connection.confirmTransaction(signature, 'processed');
-};
+  const signature = await sendTransaction(transaction, connection)
+  await connection.confirmTransaction(signature, 'processed')
+}
 ```
 
 ## Anchor usage
@@ -106,47 +107,47 @@ export const sendOneLamportToRandomAddress = () => {
 If you're using Anchor, then you might want to define your own store that encapsulates `useWallet` into something that will also provide information on the current connection, provider and program.
 
 ```js
-import { computed } from "vue";
-import { useAnchorWallet } from "solana-wallets-vue";
-import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import idl from "@/idl.json";
+import idl from '@/idl.json'
+import { AnchorProvider, Program } from '@project-serum/anchor'
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js'
+import { useAnchorWallet } from 'solana-wallets-vue'
+import { computed } from 'vue'
 
-const preflightCommitment = "processed";
-const commitment = "confirmed";
-const programID = new PublicKey(idl.metadata.address);
+const preflightCommitment = 'processed'
+const commitment = 'confirmed'
+const programID = new PublicKey(idl.metadata.address)
 
-const workspace = null;
-export const useWorkspace = () => workspace;
+let workspace
+export const useWorkspace = () => workspace
 
-export const initWorkspace = () => {
-  const wallet = useAnchorWallet();
-  const connection = new Connection(clusterApiUrl("devnet"), commitment);
+export function initWorkspace() {
+  const wallet = useAnchorWallet()
+  const connection = new Connection(clusterApiUrl('devnet'), commitment)
   const provider = computed(
     () =>
       new AnchorProvider(connection, wallet.value, {
         preflightCommitment,
         commitment,
       })
-  );
-  const program = computed(() => new Program(idl, programID, provider.value));
+  )
+  const program = computed(() => new Program(idl, programID, provider.value))
 
   workspace = {
     wallet,
     connection,
     provider,
     program,
-  };
-};
+  }
+}
 ```
 
 This allows you to access the Anchor program anywhere within your application in just a few lines of code.
 
 ```js
-import { useWorkspace } from "./useWorkspace";
+import { useWorkspace } from './useWorkspace'
 
-const { program } = useWorkspace();
-await program.value.rpc.myInstruction(/* ... */);
+const { program } = useWorkspace()
+await program.value.rpc.myInstruction(/* ... */)
 ```
 
 ## Configurations
@@ -190,14 +191,14 @@ The table below shows all the properties and methods you can get from `useWallet
 1. Create a new plugin, ex. `plugins/solana.ts`
 
 ```ts
-import "solana-wallets-vue/styles.css";
-import SolanaWallets from "solana-wallets-vue";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
+} from '@solana/wallet-adapter-wallets'
+import SolanaWallets from 'solana-wallets-vue'
+import 'solana-wallets-vue/styles.css'
 
 const walletOptions = {
   wallets: [
@@ -206,48 +207,48 @@ const walletOptions = {
     new SolflareWalletAdapter({ network: WalletAdapterNetwork.Devnet }),
   ],
   autoConnect: true,
-};
+}
 
 export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(SolanaWallets, walletOptions);
-});
+  nuxtApp.vueApp.use(SolanaWallets, walletOptions)
+})
 ```
 
 2. Update the `nuxt.config.ts`
 
 ```ts
 export default defineNuxtConfig({
-  modules: ["@nuxtjs/tailwindcss"],
+  modules: ['@nuxtjs/tailwindcss'],
   vite: {
     esbuild: {
-      target: "esnext",
+      target: 'esnext',
     },
     build: {
-      target: "esnext",
+      target: 'esnext',
     },
     optimizeDeps: {
-      include: ["@project-serum/anchor", "@solana/web3.js", "buffer"],
+      include: ['@project-serum/anchor', '@solana/web3.js', 'buffer'],
       esbuildOptions: {
-        target: "esnext",
+        target: 'esnext',
       },
     },
     define: {
-      "process.env.BROWSER": true,
+      'process.env.BROWSER': true,
     },
   },
-});
+})
 ```
 
 3. On your `app.vue`
 
 ```vue
 <script lang="ts" setup>
-import { WalletMultiButton } from "solana-wallets-vue";
+import { WalletMultiButton } from 'solana-wallets-vue'
 </script>
 
 <template>
   <ClientOnly>
-    <WalletMultiButton />
+    <wallet-multi-button />
   </ClientOnly>
 </template>
 ```
