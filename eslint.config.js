@@ -39,7 +39,7 @@ export default antfu(
   },
   {
     files: [
-      'example/*.vue',
+      'packages/demo/**/*.vue',
     ],
     rules: {
       'no-alert': 'off',
