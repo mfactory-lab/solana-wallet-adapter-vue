@@ -39,11 +39,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        env:
-          NODE_OPTIONS: --max_old_space_size=4096
         run: |
           pnpm build && pnpm demo build
-          cp -r packages/demo/dist dist && cp dist/index.html dist/404.html && touch dist/.nojekyll
+          touch dist/.nojekyll
         # echo ${{ env.URL }} > dist/CNAME
 
       - name: Setup Pages
@@ -52,7 +50,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: packages/demo/dist
 
   # Deployment job
   deploy:
