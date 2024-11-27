@@ -32,8 +32,6 @@ export interface WalletStore {
 
   // Optional methods.
   signTransaction: Ref<SignerWalletAdapterProps['signTransaction'] | undefined>
-  signAllTransactions: Ref<
-    SignerWalletAdapterProps['signAllTransactions'] | undefined
-  >
+  signAllTransactions: Ref<SignerWalletAdapterProps['signAllTransactions'] | undefined>
   signMessage: Ref<MessageSignerWalletAdapterProps['signMessage'] | undefined>
 }

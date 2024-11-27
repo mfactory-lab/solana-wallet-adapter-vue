@@ -5,6 +5,7 @@ import { initWallet, useWallet } from './useWallet'
 export * from './components'
 export * from './createWalletStore'
 export * from './errors'
+export * from './types'
 export * from './useAnchorWallet'
 export * from './useWallet'
 
