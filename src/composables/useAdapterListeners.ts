@@ -10,7 +10,7 @@ import type { Wallet } from '~/types'
 export function useAdapterListeners(
   wallet: Ref<Wallet | undefined>,
   unloadingWindow: Ref<boolean>,
-  isUsingMwaAdapterOnMobile: Ref<boolean>,
+  isUsingMwaOnMobile: Ref<boolean>,
   deselect: (force?: boolean) => void,
   refreshWalletState: () => void,
   handleError: (error: WalletError, adapter?: Adapter) => WalletError,
@@ -36,7 +36,7 @@ export function useAdapterListeners(
   }
 
   const handleAdapterDisconnect = () => {
-    if (unloadingWindow.value || isUsingMwaAdapterOnMobile.value) {
+    if (unloadingWindow.value || isUsingMwaOnMobile.value) {
       return
     }
     deselect(true)
@@ -48,7 +48,6 @@ export function useAdapterListeners(
     if (!adapter) {
       return
     }
-
     const handleAdapterError = (error: WalletError): WalletError => {
       return handleError(error, adapter)
     }

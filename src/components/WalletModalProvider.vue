@@ -58,23 +58,17 @@ export default defineComponent({
         switch (wallet.readyState) {
           case WalletReadyState.NotDetected: {
             notDetected.push(wallet)
-
             break
           }
-
           case WalletReadyState.Loadable: {
             loadable.push(wallet)
-
             break
           }
-
           case WalletReadyState.Installed: {
             installed.push(wallet)
-
             break
           }
-
-        // No default
+          // No default
         }
       }
 
