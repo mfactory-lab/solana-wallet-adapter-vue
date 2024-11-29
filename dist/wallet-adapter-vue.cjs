@@ -95,7 +95,7 @@ function useEnvironment(adapters) {
 let _userAgent;
 function getUserAgent() {
   var _a;
-  if (_userAgent === void 0) {
+  if (typeof window !== "undefined" && _userAgent === void 0) {
     _userAgent = (_a = window.navigator) == null ? void 0 : _a.userAgent;
   }
   return _userAgent;

@@ -30,7 +30,7 @@ export function useEnvironment(adapters: Ref<Adapter[]>): {
 
 let _userAgent: string | undefined
 function getUserAgent() {
-  if (_userAgent === undefined) {
+  if (typeof window !== 'undefined' && _userAgent === undefined) {
     _userAgent = window.navigator?.userAgent
   }
   return _userAgent
