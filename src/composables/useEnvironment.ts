@@ -37,11 +37,11 @@ function getUserAgent() {
 }
 
 function getUriForAppIdentity(): string | undefined {
-  const location = window.location
-  if (location === undefined) {
+  if (typeof window === 'undefined' || window.location === undefined) {
     return
   }
-  return `${location.protocol}//${location.host}`
+  const { protocol, host } = window.location
+  return `${protocol}//${host}`
 }
 
 function getEnvironment(

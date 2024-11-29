@@ -101,11 +101,11 @@ function getUserAgent() {
   return _userAgent;
 }
 function getUriForAppIdentity() {
-  const location = window.location;
-  if (location === void 0) {
+  if (typeof window === "undefined" || window.location === void 0) {
     return;
   }
-  return `${location.protocol}//${location.host}`;
+  const { protocol, host } = window.location;
+  return `${protocol}//${host}`;
 }
 function getEnvironment(adapters, userAgent) {
   const hasInstalledAdapters = adapters.some(
