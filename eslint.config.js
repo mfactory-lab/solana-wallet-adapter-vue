@@ -19,6 +19,7 @@ export default antfu(
       // Vue specific rules
       'vue/component-name-in-template-casing': ['error', 'kebab-case'],
 
+      'unicorn/prefer-global-this': 'off',
       'unicorn/prevent-abbreviations': 'off',
       'unicorn/filename-case': 'off',
       'unicorn/prefer-module': 'off',

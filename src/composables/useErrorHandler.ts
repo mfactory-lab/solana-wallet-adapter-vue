@@ -21,7 +21,7 @@ export function useErrorHandler(
 
     if (
       error instanceof WalletNotReadyError
-      && typeof globalThis !== 'undefined'
+      && typeof window !== 'undefined'
       && adapter
     ) {
       window.open(adapter.url, '_blank')

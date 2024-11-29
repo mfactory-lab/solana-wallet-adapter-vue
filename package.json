@@ -1,7 +1,7 @@
 {
   "name": "@solana/wallet-adapter-vue",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@9.14.2",
   "description": "Solana Wallet Adapter for Vue",
   "author": "Loris Leiva",

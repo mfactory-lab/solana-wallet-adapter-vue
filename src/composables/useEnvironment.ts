@@ -31,13 +31,13 @@ export function useEnvironment(adapters: Ref<Adapter[]>): {
 let _userAgent: string | undefined
 function getUserAgent() {
   if (_userAgent === undefined) {
-    _userAgent = globalThis.navigator?.userAgent
+    _userAgent = window.navigator?.userAgent
   }
   return _userAgent
 }
 
 function getUriForAppIdentity(): string | undefined {
-  const location = globalThis.location
+  const location = window.location
   if (location === undefined) {
     return
   }

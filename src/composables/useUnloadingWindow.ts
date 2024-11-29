@@ -8,7 +8,7 @@ import { ref, watchEffect } from 'vue'
 export function useUnloadingWindow(isUsingMwaOnMobile: Ref<boolean>): Ref<boolean> {
   const unloadingWindow = ref(false)
 
-  if (typeof globalThis === 'undefined') {
+  if (typeof window === 'undefined') {
     return unloadingWindow
   }
 
