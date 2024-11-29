@@ -94,12 +94,12 @@ let _userAgent;
 function getUserAgent() {
   var _a;
   if (_userAgent === void 0) {
-    _userAgent = (_a = globalThis.navigator) == null ? void 0 : _a.userAgent;
+    _userAgent = (_a = window.navigator) == null ? void 0 : _a.userAgent;
   }
   return _userAgent;
 }
 function getUriForAppIdentity() {
-  const location = globalThis.location;
+  const location = window.location;
   if (location === void 0) {
     return;
   }
@@ -135,7 +135,7 @@ function useErrorHandler(unloadingWindow, onError) {
       onError(error, adapter);
       return error;
     }
-    if (error instanceof WalletNotReadyError && typeof globalThis !== "undefined" && adapter) {
+    if (error instanceof WalletNotReadyError && typeof window !== "undefined" && adapter) {
       window.open(adapter.url, "_blank");
     }
     return error;
@@ -1698,7 +1698,7 @@ function useTransactionMethods(wallet, handleError) {
 }
 function useUnloadingWindow(isUsingMwaOnMobile) {
   const unloadingWindow = ref(false);
-  if (typeof globalThis === "undefined") {
+  if (typeof window === "undefined") {
     return unloadingWindow;
   }
   const handleBeforeUnload = () => unloadingWindow.value = true;
